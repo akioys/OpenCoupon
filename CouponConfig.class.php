@@ -12,14 +12,28 @@ class CouponConfig extends ConfigMgr
 		
 		parent::__call($name, $args);
 	}
-
-	function GenerateFormFromDatabase( $table, $record )
+	
+	/**
+	 * データベースに存在するテーブル定義を元にしてフォームのconfigを作成する。
+	 * 
+	 * @see ConfigMgr::GenerateFormFromDatabase()
+	 * @param string $table_name 定義の元になるテーブル名
+	 * @param array  $record input.valueに代入する初期値
+	 * @return Config
+	 */
+	function GenerateFormFromDatabase( $table_name, $record=null )
 	{
+		//  Init.
 		$config = new Config();
-		$config->table = $table;
-		$struct = $this->pdo()->GetTableStruct($config);
+		//  Set table name.
+		$config->table = $table_name;
+		//  Get table structs.
+		$struct = $this->pdo()->GetTableStruct($table_name);
+		//  Get form config.
 		$config = parent::GenerateFormFromDatabase($struct,$record);
+		//  Create submit button.
 		$config->input->submit->type = 'submit';
+		//  Return form config.
 		return $config;
 	}
 	
@@ -46,22 +60,79 @@ class CouponConfig extends ConfigMgr
 	}
 	
 	/**
-	 * メールを送って本人確認を行う。
+	 * 新規登録の際にメールを送信して本人確認を行う。
 	 * 
-	 * 
-	 * 
+	 * @param  string $identification 
+	 * @return Config
 	 */
-	function mail_identification()
+	function mail_identification_register($identification)
 	{
+		$data = new Config();
+		$data->identification = $identification;
+	
 		$mail_config = new Config();
-		
-		$mail_config->to      = $this->form()->GetInputValue('email','form_email');
-		$mail_config->form    = 'no-reply@open-coupon.com'; // TODO
-		$mail_config->subject = 'オープンクーポン：メールアドレスの変更';
-		$mail_config->message = $this->GetTemplate('mail/identification.phtml');
+		$mail_config->to      = $this->form()->GetInputValue('email','form_register');
+		$mail_config->from    = 'no-reply@open-coupon.com'; // TODO
+		$mail_config->subject = 'オープンクーポン：ユーザ情報の登録';
+		$mail_config->message = $this->GetTemplate('mail/identification.phtml',$data);
 		
 		return $mail_config;
 	}
+	
+	/**
+	 * mypageからメールアドレスを変更する際に、メールを送信して本人確認を行う。
+	 * 
+	 * @param  string $identification
+	 * @return Config
+	 */
+	function mail_identification_email($identification)
+	{
+		$data = new Config();
+		$data->identification = $identification;
+		
+		$mail_config = new Config();
+		$mail_config->to      = $this->form()->GetInputValue('email','form_email');
+		$mail_config->from    = 'no-reply@open-coupon.com'; // TODO
+		$mail_config->subject = 'オープンクーポン：メールアドレスの変更';
+		$mail_config->message = $this->GetTemplate('mail/identification.phtml',$data);
+		
+		return $mail_config;
+	}
+
+	function mail_forget($email, $password)
+	{
+		$data = new Config();
+		$data->password = $password;
+		
+		$mail_config = new Config();
+		$mail_config->to      = $email;
+		$mail_config->from    = 'no-reply@open-coupon.com'; // TODO
+		$mail_config->subject = 'オープンクーポン：パスワードの再生成';
+		$mail_config->message = $this->GetTemplate('mail/password_forget.phtml',$data);
+		
+		return $mail_config;
+	}
+	
+	
+	function password_forget($email){
+
+		//	generate new password
+		$new_password = $this->model('Password')->get();
+		
+		//	get account_id
+		//$account_id = $this->model('Login')->GetLoginID();
+		//$config = $this->
+		
+		
+		$this->d($account_id);
+		
+		//	update database
+		//$res = $this->update_password_forget($account_id, $password);
+		
+		
+		return $new_password;
+	}
+	
 	
 	function form_buy($coupon_id)
 	{
@@ -95,6 +166,9 @@ class CouponConfig extends ConfigMgr
 			//$option['style'] = 'text-align:center;';
 			$form_config->input->$input_name->option->$i->style   = 'text-align:center;';
 		}
+		
+		//  submit
+		$form_config->input->submit->style = "font-size:18px;";
 		
 		return $form_config;
 	}
@@ -165,7 +239,7 @@ class CouponConfig extends ConfigMgr
 		
 		//  form name
 		$form_config->name   = 'form_register';
-		$form_config->action = 'app:/register/confirm';
+		$form_config->action = 'app:/account/register/confirm';
 		
 		//  First name
 		$input_name = 'first_name';
@@ -295,6 +369,43 @@ class CouponConfig extends ConfigMgr
 		
 		return $form_config;
 	}
+
+	function form_forget()
+	{
+		$form_config = self::_form_default(__FUNCTION__);//これでOK？
+		
+		//  form name
+		$form_config->name   = 'form_forget';
+
+		//  email
+		$input_name = 'email';
+		$form_config->input->$input_name->label = 'メールアドレス';
+		$form_config->input->$input_name->type  = 'text';
+		$form_config->input->$input_name->validate->required = true;
+		$form_config->input->$input_name->validate->permit   = 'email';
+		$form_config->input->$input_name->error->required    = '$labelが未入力です。';
+
+		return $form_config;
+	}
+	
+	
+	/**
+	 * 登録しようとしているメールアドレスが本人かキーコードを送信し、入力して貰って本人確認を行う。
+	 *
+	 */
+	function form_register_identification()
+	{
+		$form_config = self::_form_default(__FUNCTION__);
+	
+		//  Form
+		$form_config->name = 'form_register_identification';
+	
+		//  key code
+		$input_name = 'identification';
+		$form_config->input->$input_name->label = '確認コード';
+	
+		return $form_config;
+	}
 	
 	function form_address( $account_id, $seq_no=null )
 	{
@@ -302,6 +413,9 @@ class CouponConfig extends ConfigMgr
 		
 		//  form name
 		$form_config->name   = 'form_address';
+		if( $seq_no ){
+			$form_config->name .= "_$seq_no";
+		}
 		
 		//  First name
 		$input_name = 'first_name';
@@ -368,7 +482,7 @@ class CouponConfig extends ConfigMgr
 					$form_config->input->$input_name->value = $value;
 				}
 			}
-			$this->d( $record );
+		//	$this->d( $record );
 		}
 		
 		//  seq_no
@@ -636,9 +750,23 @@ class CouponConfig extends ConfigMgr
 	{
 		$form_config = self::_form_default(__FUNCTION__);
 		
+		//  Current email address
+		$id = $this->model('Login')->GetLoginID();
+		$email = $this->pdo()->quick("email <- t_account.id = $id");
+		//  TODO:
+		//$email = $this->model('Blowfish')->Decript($email);
+		$bf = new Blowfish();
+		$email = $bf->Decrypt($email);
+		
 		//  form name
 		$form_config->name   = 'form_email';
-	//	$form_config->action = "app:/mypage/customer/email";
+		
+		//  email current
+		$input_name = 'email_current';
+		$form_config->input->$input_name->label  = '現在のメールアドレス';
+		$form_config->input->$input_name->type   = 'text';
+		$form_config->input->$input_name->value  = $email;
+		$form_config->input->$input_name->readonly = true; //  TODO: write testcase
 		
 		//  email
 		$input_name = 'email';
@@ -646,6 +774,7 @@ class CouponConfig extends ConfigMgr
 		$form_config->input->$input_name->type  = 'text';
 		$form_config->input->$input_name->validate->required = true;
 		$form_config->input->$input_name->validate->permit   = 'email';
+		$form_config->input->$input_name->error->required    = '$labelが未入力です。';
 		
 		//  email confirm
 		$input_name = 'email_confirm';
@@ -653,6 +782,8 @@ class CouponConfig extends ConfigMgr
 		$form_config->input->$input_name->type  = 'text';
 		$form_config->input->$input_name->validate->required = true;
 		$form_config->input->$input_name->validate->compare  = 'email';
+		$form_config->input->$input_name->error->required    = '$labelが未入力です。';
+		$form_config->input->$input_name->error->compare     = '$labelが一致しません。';
 		
 		return $form_config;
 	}
@@ -664,11 +795,14 @@ class CouponConfig extends ConfigMgr
 	function form_email_identification()
 	{
 		$form_config = self::_form_default(__FUNCTION__);
-	
+		
+		//  Form
+		$form_config->name = 'form_identification';
+		
 		//  key code
 		$input_name = 'identification';
 		$form_config->input->$input_name->label = '確認コード';
-	
+		
 		return $form_config;
 	}
 	
@@ -753,20 +887,125 @@ class CouponConfig extends ConfigMgr
 		}
 		
 		//  t_coupon struct
-		$config = $this->GenerateFormFromDatabase('t_coupon',$record);
+		$form_config = $this->GenerateFormFromDatabase('t_coupon',$record);
 		
 		//  Init shop_id
-		$config->input->shop_id->value = $shop_id;
+		$form_config->input->shop_id->value = $shop_id;
 		
 		//  Remove new coupon required value.
-		if( $coupon_id ){
-			unset($config->coupon_id);
+		/*
+		if( $form_coupon_id ){ // TODO: これはもう要らない？変数名を変更（削除）した？
+			unset($form_config->coupon_id);
 		}
+		*/
 		
 		//  Added form name
-		$config->name = 'form_coupon' . $coupon_id;
+		$form_config->name = 'form_coupon' . $coupon_id;
 		
-		return $config;
+		$input_name = 'coupon_title';
+		$form_config->input->$input_name->label  = 'タイトル';
+		$form_config->input->$input_name->type   = 'text';
+		$form_config->input->$input_name->required = true;
+		$form_config->input->$input_name->errors->required = '%sが未入力です。';
+		
+		$input_name = 'coupon_description';
+		$form_config->input->$input_name->label  = '説明';
+		$form_config->input->$input_name->type   = 'text';
+		$form_config->input->$input_name->required = true;
+		$form_config->input->$input_name->errors->required = '%sが未入力です。';
+		
+		$input_name = 'coupon_normal_price';
+		$form_config->input->$input_name->label  = '通常価格';
+		$form_config->input->$input_name->type   = 'text';
+		$form_config->input->$input_name->required = true;
+		$form_config->input->$input_name->errors->required = '%sが未入力です。';
+		$form_config->input->$input_name->validate->permit = 'integer';
+		$form_config->input->$input_name->validate->range = '1-';
+		$form_config->input->$input_name->error->{'permit-integer'} = 'Only integer. (not decimal)';
+		$form_config->input->$input_name->error->{'permit-numeric'} = 'Only numeric.';
+		
+		$input_name = 'coupon_sales_price';
+		$form_config->input->$input_name->label  = '販売価格';
+		$form_config->input->$input_name->type   = 'text';
+		$form_config->input->$input_name->required = true;
+		$form_config->input->$input_name->errors->required = '%sが未入力です。';
+		$form_config->input->$input_name->validate->permit = 'integer';
+		$form_config->input->$input_name->validate->range = '1-';
+		$form_config->input->$input_name->error->{'permit-integer'} = 'Only integer. (not decimal)';
+		$form_config->input->$input_name->error->{'permit-numeric'} = 'Only numeric.';
+		
+		$input_name = 'coupon_sales_num_top';
+		$form_config->input->$input_name->label  = '最大販売数';
+		$form_config->input->$input_name->type   = 'text';
+		$form_config->input->$input_name->required = true;
+		$form_config->input->$input_name->validate->permit = 'integer';
+		$form_config->input->$input_name->validate->range = '1-';
+		$form_config->input->$input_name->error->{'permit-integer'} = 'Only integer. (not decimal)';
+		$form_config->input->$input_name->error->{'permit-numeric'} = 'Only numeric.';
+		
+		$input_name = 'coupon_sales_num_bottom';
+		$form_config->input->$input_name->label  = '最小販売数';
+		$form_config->input->$input_name->type   = 'text';
+		$form_config->input->$input_name->required = true;
+		$form_config->input->$input_name->validate->permit = 'integer';
+		$form_config->input->$input_name->validate->range = '1-';
+		$form_config->input->$input_name->error->{'permit-integer'} = 'Only integer. (not decimal)';
+		$form_config->input->$input_name->error->{'permit-numeric'} = 'Only numeric.';
+		
+		$input_name = 'coupon_sales_start';
+		$form_config->input->$input_name->label  = '販売開始日時';
+		$form_config->input->$input_name->type   = 'text';
+		$form_config->input->$input_name->required = true;
+		$form_config->input->$input_name->validate->permit = 'datetime';
+		$form_config->input->$input_name->error->{'permit-datetime'} = 'Only datetime';
+		
+		$input_name = 'coupon_sales_finish';
+		$form_config->input->$input_name->label  = '販売終了日時';
+		$form_config->input->$input_name->type   = 'text';
+		$form_config->input->$input_name->required = true;
+		$form_config->input->$input_name->validate->permit = 'datetime';
+		$form_config->input->$input_name->error->{'permit-datetime'} = 'Only datetime';
+		
+		$input_name = 'coupon_expire';
+		$form_config->input->$input_name->label  = '有効期限';
+		$form_config->input->$input_name->type   = 'text';
+		$form_config->input->$input_name->required = true;
+		$form_config->input->$input_name->validate->permit = 'datetime';
+		$form_config->input->$input_name->error->{'permit-datetime'} = 'Only datetime';
+		
+		$input_name = 'coupon_person_num';
+		$form_config->input->$input_name->label  = '一人が購入できる枚数';
+		$form_config->input->$input_name->type   = 'text';
+		$form_config->input->$input_name->required = true;
+		$form_config->input->$input_name->error->{'permit-numeric'} = 'Only numeric.';
+		
+		$input_name = 'coupon_image';
+		$form_config->input->$input_name->label  = 'クーポンのイメージ';
+		$form_config->input->$input_name->type   = 'file';
+		$form_config->input->$input_name->required = true;
+	//	$form_config->input->$input_name->save->path = $this->ConvertPath("app:/shop/$shop_id/$coupon_id/1");
+		$form_config->input->$input_name->validate->permit = 'image';
+		
+		//  submit
+		$input_name = 'submit';
+		$form_config->input->$input_name->type   = 'submit';
+		$form_config->input->$input_name->class  = 'submit';
+		$form_config->input->$input_name->style  = 'font-size: 16px;';
+		$form_config->input->$input_name->value  = '変更を保存する';
+		
+		return $form_config;
+		
+		/*
+		//  form name
+		$form_config->name   = 'form_email';
+		
+		//  email current
+		$input_name = 'email_current';
+		$form_config->input->$input_name->label  = '現在のメールアドレス';
+		$form_config->input->$input_name->type   = 'text';
+		$form_config->input->$input_name->value  = $email;
+		$form_config->input->$input_name->readonly = true; //  TODO: write testcase
+		*/
 	}
 	
 	function form_password( $account_id )
@@ -839,7 +1078,7 @@ class CouponConfig extends ConfigMgr
 	
 	//===========================================//
 
-	function database()
+	static function database()
 	{
 		$config = parent::database();
 	
@@ -849,7 +1088,7 @@ class CouponConfig extends ConfigMgr
 		return $config;
 	}
 	
-	function select_coupon_list()
+	function select_coupon_list( $coupon_id=null )
 	{
 		//  Init.
 		$limit  = 10;
@@ -857,14 +1096,19 @@ class CouponConfig extends ConfigMgr
 		$offset = $limit * $page;
 		
 		//  Create select config.
-		$config = self::select_coupon();
+		$config = self::select_coupon( $coupon_id );
 		$config->where->coupon_sales_start  = '< '.date('Y-m-d H:i:s'/*, time() + date('Z') */);
 		$config->where->coupon_sales_finish = '> '.date('Y-m-d H:i:s'/*, time() + date('Z') */);
-		$config->limit  = $limit;
-		$config->offset = $offset;
+		if( $coupon_id ){
+			$config->where->coupon_id = $coupon_id;
+			$config->limit = 2;
+		}else{
+			$config->limit  = $limit;
+			$config->offset = $offset;
+		}
 		
-		//  alias
-		$config->column->coupon_normal_price = 'coupon_normal_price'; 
+		//  alias (Is this necessary?)
+		//  $config->column->coupon_normal_price = 'coupon_normal_price'; 
 		
 		return $config;
 	}
@@ -874,10 +1118,10 @@ class CouponConfig extends ConfigMgr
 		$config = parent::select('t_coupon');
 		if( $coupon_id ){
 			$config->where->coupon_id = $coupon_id;
+			$config->limit = 1;
 		}else{
 			//	$config->order = '';
 		}
-		$config->limit = 1;
 		
 		return $config;
 	}
@@ -897,13 +1141,41 @@ class CouponConfig extends ConfigMgr
 		return $config;
 	}
 	
-	function select_account()
+	/**
+	 * ここにコメントを入力する
+	 * 
+	 * @param  string $id
+	 * @param  string $email
+	 * @return Config
+	 */
+	function select_account( $id=null, $email )
 	{
 		$config = $this->select();
 		$config->table = 't_account';
+		
+		if( $id ){
+			$config->where->id = $id;
+			$config->limit = 1;
+		}
+		
 		return $config;
 	}
-
+	
+	/**
+	 * 
+	 * @return unknown
+	 */
+	function select_account_mine()
+	{
+		//  Get Login id
+		$id = $this->model('Login')->GetLoginID();
+		
+		//  Get config
+		$config = $this->select_account($id);
+		
+		return $config;
+	}
+	
 	function select_buy( $id=null )
 	{
 		if(!$id){
@@ -933,19 +1205,6 @@ class CouponConfig extends ConfigMgr
 		return $this->select_buy($id);
 	}
 	
-	/*
-	function select_my_buy()
-	{
-		$id = $this->model('Login')->GetLoginID();
-		$config = $this->select();
-		$config->table = 't_buy';
-		$config->account_id = $id; // where が指定されていません
-		$config->settle_flag = 1;
-		
-		return $config;
-	}
-	*/
-	
 	function select_one_coupon($coupon_id)
 	{
 		$config = $this->select();
@@ -972,49 +1231,59 @@ class CouponConfig extends ConfigMgr
 		return $this->select_customer($id);
 	}
 	
+	/*
 	function select_my_account()
 	{
 		$id = $this->model('Login')->GetLoginID();
 		$config = $this->select();
 		$config->table = 't_account';
-		$config->account_id = $id;
+		$config->where->id = $id;
 		$config->limit = 1;
 		
 		return $config;
+	}
+	*/
+	
+	function select_account_email( $email )
+	{
+		$config = $this->select();
+		$config->table = 't_account';
+		$config->where->email_md5 = md5($email);
+		$config->limit = 1;
+		
+		return $config;//dbに問い合わせはしていない。
 	}
 	
 	function select_address( $id, $seq_no=null )
 	{
 		$config = parent::select('t_address');
 		$config->table = 't_address';
-		$config->account_id = $id;
+		$config->where->account_id = $id;
 		if( $seq_no ){
-			$config->seq_no = $seq_no;
+			$config->where->seq_no = $seq_no;
 			$config->limit = 1;
 		}
+		return $config;
+	}
+	
+	function select_address_seq_no( $id )
+	{
+		$config = self::select_address($id);
+		unset($config->where->deleted);
+		$config->agg->count = 'account_id';
+		$config->limit = 1;
 		return $config;
 	}
 	
 	function select_my_address()
 	{
 		$id = $this->model('Login')->GetLoginID();
-		/*
-			$config = $this->select();
-		$config->table = 't_address';
-		$config->account_id = $id;
-		$config->seq_no = 1;
-		$config->limit = 1;
-		*/
 		return self::select_address( $id, 1 );
 	}
 	
 	function select_photo( $shop_id, $coupon_id, $seq_no )
 	{
 		$config = parent::select('t_photo');
-	//	$config->where->shop_id   = $shop_id;
-	//	$config->where->coupon_id = $coupon_id;
-	//	$config->where->seq_no    = $seq_no; 
-	//	$config->column = 'url';
 		$config->limit  = 1;
 		return $config; 
 	}
@@ -1022,47 +1291,37 @@ class CouponConfig extends ConfigMgr
 	function insert_account()
 	{
 		$_post = $this->form()->GetInputValueAll('form_register');
-		//$this->d($_post);
 		
 		$blowfish = new Blowfish();
 		
-		$email    = $_post->email;
-		$password = $_post->password;
-		
 		$config = parent::insert('t_account');
-		$config->set->email     = $blowfish->Encrypt( $email, '04B915BA43FEB5B6' );
-		$config->set->email_md5 = md5($email);
-		$config->set->password  = md5($password);
+		$config->set->email_md5 = md5($_post->email);
+		$config->set->email = $blowfish->Encrypt($_post->email);
+		$config->set->password = md5($_post->password);
 		
 		return $config;
 	}
 	
 	function insert_customer( $account_id )
 	{
+		//  Check
 		if(!$account_id){
 			$this->StackError("acount_id is empty.");
 			return false;
 		}
 		
+		//  Init set
 		$_post = $this->form()->GetInputValueAll('form_register');
-		//$this->d($_post);
-		
-		$nick_name  = $_post->nick_name;
-		$first_name = $_post->first_name;
-		$last_name  = $_post->last_name;
-		$gender     = $_post->gender;
-		$pref       = $_post->pref;
-		$birthday   = $_post->birthday;
 		
 		$config = parent::insert('t_customer');
-
-		$config->set->account_id = $account_id;
-		$config->set->nick_name   = $nick_name;
-		$config->set->first_name  = $first_name;
-		$config->set->last_name   = $last_name;
-		$config->set->gender      = $gender;
-		$config->set->pref        = $pref;
-		$config->set->birthday    = $birthday;
+		
+		$config->set->account_id	 = $account_id;
+		$config->set->nick_name		 = $_post->nick_name;
+		$config->set->last_name		 = $_post->last_name;
+		$config->set->first_name	 = $_post->first_name;
+		$config->set->gender		 = $_post->gender;
+		$config->set->favorite_pref	 = $_post->favorite_pref;
+		$config->set->birthday		 = $_post->birthday;
 		
 		return $config;
 	}
@@ -1074,16 +1333,26 @@ class CouponConfig extends ConfigMgr
 			return false;
 		}
 		
+		//  Posted value.
 		$set = $this->form()->GetInputValueAll('form_address');
 		$set = $this->Decode($set);
+		
+		//  Get seq_no
+		$select = $this->config()->select_address_seq_no($account_id);
+		$record = $this->pdo()->select($select);
+		$seq_no = $record['COUNT(account_id)'];
+		
 		//  Added
 		$set->account_id = $account_id;
-		//  Remove
-		unset($set->submit);
+		$set->seq_no     = $seq_no + 1;
 		
+		// TODO:
+		// $this->pdo()->Quick("sum(account_id) <- t_address.account_id = $account_id");
+		
+		//  
 		$config = parent::insert('t_address');
 		$config->set = $set;
-		$config->update = true;
+		$config->update = false;
 		
 		return $config;
 	}
@@ -1205,7 +1474,7 @@ class CouponConfig extends ConfigMgr
 			$this->StackError("form_name is empty.");
 			return false;
 		}
-				
+		
 		$config = parent::update('t_coupon');
 		
 		//  Get submitted form value
@@ -1234,24 +1503,56 @@ class CouponConfig extends ConfigMgr
 		return $config;
 	}
 	
-	function update_address( $account_id,$seq_no)
+	function update_address( $account_id, $seq_no )
 	{
-		$set = $this->form()->GetInputValueAll('form_address_change');
-		unset($set->submit);
-	
+		$form_name = "form_address_{$seq_no}";
+		$set = $this->form()->GetInputValueAll($form_name);
+		
 		$config = parent::update('t_address');
 		$config->where->account_id = $account_id;
-		$config->where->seq_no = $seq_no;
+		$config->where->seq_no     = $seq_no;
 		$config->limit = 1;
 		$config->set = $set;
-	
+		
+		return $config;
+	}
+
+	function update_email()
+	{
+		//  Init value
+		$id = $this->model('Login')->GetLoginID();
+		$email = $this->form()->GetInputValue('email','form_email');
+		//$email = $this->model('Blowfish')->Encrypt($email); // TODO: to modeling
+		$bf = new Blowfish();
+		
+		//  Create config
+		$config = parent::update('t_account');
+		$config->where->id = $id;
+		$config->limit = 1;
+		$config->set->email = $bf->Encrypt($email);
+		$config->set->email_md5 = md5($email);
+		
 		return $config;
 	}
 	
-	function update_password( $account_id )
+	function update_password( $account_id, $password = null )
 	{
-		//  Get submit value from form.
-		$password = $this->form()->GetValue('password','form_password');
+		if( !$password ){
+			//  Get submit value from form.
+			$password = $this->form()->GetValue('password','form_password');
+		}
+		
+		//  Create config
+		$config = parent::update('t_account');
+		$config->where->id = $account_id;
+		$config->limit = 1;
+		$config->set->password = md5($password);
+		
+		return $config;
+	}
+	
+	function update_password_forget( $account_id, $password )
+	{
 		
 		//  Encrypt
 		$browfish = new Blowfish();
@@ -1264,6 +1565,7 @@ class CouponConfig extends ConfigMgr
 		$config->set->password = $password;
 		
 		return $config;
+		
 	}
 	
 	function delete_coupon( $coupon_id )
