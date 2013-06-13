@@ -8,13 +8,7 @@ $shop_id = $this->GetShopID();
 $form_config = $this->config()->form_coupon( $shop_id );
 $this->form()->AddForm( $form_config );
 $form_name = $form_config->name;
-<<<<<<< HEAD
-//$this->d($form_name);
 //$this->form()->Clear($form_name);
-=======
-$this->form()->Clear($form_name);
-//$this->d($_POST);
->>>>>>> f327f379a3c246b981dca01440400aebaa1803c6
 
 //  Action
 $action = $this->GetAction();
@@ -49,13 +43,17 @@ switch( $action ){
 			}else{
 				//	Get image path.
 				$path_from = $this->form()->GetInputValue('coupon_image',$form_name);
-				$path_from = $this->ConvertPath('app:/'.$path_from);
+				
+				//	Get extention.
 				if( preg_match( '|\.([a-z]{3})$|i', $path_from, $match ) ){
 					$ext = $match[1];
-					$path_to = $this->ConvertPath("app:/shop/$shop_id/$coupon_id/1.$ext");
 				}else{
 					$this->StackError("Does not match extention.");
 				}
+				
+				//	Get full path.
+				$path_from = $this->ConvertPath("app:/$path_from");
+				$path_to   = $this->ConvertPath("app:/shop/$shop_id/$coupon_id/1.$ext");
 				
 				//	Create directory.
 				mkdir($this->ConvertPath("app:/shop/$shop_id/$coupon_id"));
