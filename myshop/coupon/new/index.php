@@ -5,7 +5,7 @@
 $shop_id = $this->GetShopID();
 
 //  Form
-$form_config = $this->config()->form_coupon( $shop_id );
+$form_config = $this->config()->form_myshop_coupon( $shop_id );
 $this->form()->AddForm( $form_config );
 $form_name = $form_config->name;
 //$this->form()->Clear($form_name);
