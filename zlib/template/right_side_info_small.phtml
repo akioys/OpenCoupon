@@ -1,5 +1,6 @@
+<?php $coupon_page = $this->ConvertURL("app:/coupon/$coupon_id");?>
 <div class="info_coupon_small" style="background-color: white;">
-	<p class="small bold"><?=$coupon_title?></p>
+	<p class="small bold"><a href='<?=$coupon_page;?>'><?=$coupon_title?></a></p>
 	<p class="info_coupon_small" style=""><?=$coupon_description?></p>
 	
 	<table>
@@ -22,7 +23,7 @@
 				</div>
 			</td><td>
 				<div>
-					<img src="/img/36682_top_side.jpg" style="width:124; height:75;">
+					<a href='<?=$coupon_page;?>'><img src="/img/36682_top_side.jpg" style="width:124; height:75;"></a>
 					<?php
 					/*
 					<img src="/<?=$shop_id?>/<?=$coupon_id?>/small.png" style="width:124; height:75;">
