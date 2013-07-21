@@ -1,4 +1,10 @@
 <?php
+/*
 foreach ( $coupon_list as $coupon ){
-	$this->template('coupon_top.phtml',array('t_coupon'=>$coupon));
+	$this->d($coupon);//for test
+	$this->template('coupon_top.phtml',array('t_coupon'=>$coupon, 't_shop'=>$t_shop));
 } 
+*/
+
+//$this->d($t_coupon);
+$this->template('coupon_top.phtml',array('t_coupon'=>$t_coupon, 't_shop'=>$t_shop));
