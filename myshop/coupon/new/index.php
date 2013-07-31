@@ -50,7 +50,7 @@ switch( $action ){
 		foreach ( $value as $key => $val ){
 			$array[$key] = $val;
 			if( preg_match( '/^image_[a-zA-Z0-9]{32}$/', $key ) and $val !== null ){
-				++$n;
+				$n++;
 			}
 		}
 		
@@ -163,7 +163,7 @@ switch( $action ){
 					if( preg_match( '|\.([a-z]{3})$|i', $path_from, $match ) ){
 						$ext = $match[1];
 						$path_to = $this->ConvertPath("app:/shop/$shop_id/$coupon_id/$n.jpg");
-						++$n;
+						$n++;
 					}else{
 						//$this->StackError("Does not match extention.");
 						$data->message = '拡張子が一致しません。';

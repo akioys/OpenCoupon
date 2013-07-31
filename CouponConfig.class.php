@@ -1518,6 +1518,7 @@ class CouponConfig extends ConfigMgr
 		
 		$value = $this->form()->GetInputValueRawAll('form_coupon');
 		
+		//	Remove unnecessary value with unset()
 		foreach ( $value as $key => $val ){
 			if( preg_match( '/^image_[a-zA-Z0-9]{32}$/', $key ) ){
 				unset( $value->$key );
