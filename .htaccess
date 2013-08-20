@@ -15,6 +15,9 @@ Options +FollowSymLinks +ExecCGI +Indexes
 	# Base Directory
 	RewriteBase /
 	
+	# If a file is image
+	RewriteRule (\.png|\.jpg|\.jpeg\.gif)$ %{REQUEST_FILENAME} [L]
+	
 	# If a file does not exists.
 	RewriteCond  %{REQUEST_FILENAME} !-f
 	RewriteRule ^(.*)$ app.php [L]
