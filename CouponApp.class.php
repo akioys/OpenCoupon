@@ -543,7 +543,7 @@ class CouponApp extends App
 	function CreateSID(){
 
 		do{
-			$sid = date('m_d_His_').rand(100,999);
+			$sid = date('m_d_His_').mt_rand(100,999);
 			//	SIDの重複チェック
 			$select = array();
 			$select['table'] = 't_buy';

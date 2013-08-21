@@ -1,5 +1,9 @@
 <?php
 
+/**
+ * master
+ */
+
 class CouponConfig extends ConfigMgr
 {
 	function __call($name, $args)
@@ -930,6 +934,7 @@ class CouponConfig extends ConfigMgr
 		
 		//  Added form name
 		$form_config->name = 'form_coupon' . $coupon_id;
+		//$form_config->id = 'form_coupon';
 		
 		$input_name = 'coupon_title';
 		$form_config->input->$input_name->label  = 'タイトル';
@@ -1033,18 +1038,12 @@ class CouponConfig extends ConfigMgr
 		$form_config->input->$input_name->error->{'permit-numeric'} = 'Only numeric.';
 		*/
 		
-		$input_name = 'coupon_image';
-		$form_config->input->$input_name->label  = 'クーポンのイメージ';
-		$form_config->input->$input_name->type   = 'file';
-		$form_config->input->$input_name->required = true;
-		$form_config->input->$input_name->save->dir = $this->ConvertPath("app:/temp/$shop_id/new/");
-		$form_config->input->$input_name->validate->permit = 'image';
-		
 		//  submit
 		$input_name = 'submit';
 		$form_config->input->$input_name->type   = 'submit';
 		$form_config->input->$input_name->class  = 'submit';
 		$form_config->input->$input_name->style  = 'font-size: 16px;';
+		//$form_config->input->$input_name->onClick  = 'return CheckImgCountMin()';
 		$form_config->input->$input_name->value  = '登録する';
 		
 		return $form_config;
@@ -1061,6 +1060,48 @@ class CouponConfig extends ConfigMgr
 		$form_config->input->$input_name->readonly = true; //  TODO: write testcase
 		*/
 	}
+
+	
+	//	以下の定義は現在未使用。画像用フォームでop-coreを使用しない場合は要削除。
+	function form_myshop_coupon_image ( $shop_id, $coupon_id=null )
+	{
+		if(!$shop_id ){
+			$this->StackError('Empty shop_id.');
+			return false;
+		}
+
+		$form_config = new Config();
+		
+		//  Init shop_id
+		$form_config->input->shop_id->value = $shop_id;//不要？
+		
+		$form_config->name   = 'form_coupon_image';
+		
+		$form_config->target = 'targetFrame';
+		$form_config->id     = 'form_coupon_image';
+
+		$input_name = 'max_file_size';
+		$form_config->input->$input_name->type   = 'hidden';
+		$form_config->input->$input_name->label  = 'max_file_size';
+		$form_config->input->$input_name->value	 = 2000000;
+		
+		$input_name = 'upload_image';
+		$form_config->input->$input_name->label  = 'クーポンのイメージ';
+		$form_config->input->$input_name->type   = 'file';
+		$form_config->input->$input_name->required = true;
+		$form_config->input->$input_name->save->dir = $this->ConvertPath("app:/temp/$shop_id/new/");
+		$form_config->input->$input_name->validate->permit = 'image';
+
+		//  submit
+		$input_name = 'submit';
+		$form_config->input->$input_name->type   = 'submit';
+		//$form_config->input->$input_name->class  = 'submit';
+		//$form_config->input->$input_name->style  = 'font-size: 16px;';
+		$form_config->input->$input_name->value  = '画像をアップロード';
+		
+		return $form_config;
+	}
+	
 	
 	function form_password( $account_id )
 	{
@@ -1111,10 +1152,6 @@ class CouponConfig extends ConfigMgr
 		$qu = " email <- t_account.id = $id ";
 		$email = $this->pdo()->Quick($qu);
 		
-		//  Decrypt email
-		$blowfish = new Blowfish();
-		$email = $blowfish->Decrypt($email);
-		
 		$cardno = $this->form()->GetValue('card_no', 'form_payment');
 		$exp_yy = $this->form()->GetValue('exp_yy',  'form_payment');
 		$exp_mm = $this->form()->GetValue('exp_mm',  'form_payment');
@@ -1125,7 +1162,6 @@ class CouponConfig extends ConfigMgr
 		$config->cardno  = $cardno;
 		$config->cardexp = $cardexp;
 		$config->amount  = $amount;
-	//	$this->d( Toolbox::toArray($config) );
 		
 		return $config;
 	}
@@ -1480,7 +1516,12 @@ class CouponConfig extends ConfigMgr
 		}
 		
 		$value = $this->form()->GetInputValueRawAll('form_coupon');
-		unset($value->coupon_image);
+		
+		foreach ( $value as $key => $val ){
+			if( preg_match( '/^image_[a-z0-9]{32}$/i', $key ) ){
+				unset( $value[$key] );
+			}
+		}
 		unset($value->submit);
 		unset($value->submit_button);
 		

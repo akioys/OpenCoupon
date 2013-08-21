@@ -1,3 +1,132 @@
+<script type="text/javascript" src="jquery.upload-1.0.2.js"></script>
+<script type="text/javascript">
+$(function(){
+	//	Reference:
+	//		http://blog.joyfullife.jp/archives/2007/07/18115458.php
+	//		http://nui.joyfullife.jp/sui/edit/
+
+	$('#image_select').change(function(){
+		var img_max = 10;// # of max image file(s)
+		if($('.image').size() >= img_max){
+			alert('画像は '+ img_max + ' 枚まで指定できます。');
+			$("form")[1].reset();
+			return;
+		}
+		
+		$(this).upload('./upload/index.php', function(res){
+			if( res.error ){
+				alert( res.error );
+				$("form")[1].reset();
+			}else{
+
+				var id        = res.img_id;
+				var path      = res.img_path; 
+				var div_image = $('<div>');
+				var image_ele = $('<img src="' + path + '" width="80" height="60" >');
+				div_image.append(image_ele);
+				
+				var span_del_button = $('<span class="image_del_button" ></span>');
+				var del_button = $('<a href="javascript:del_image(\''+ id +'\')"></a>');
+				del_button.text("[x]");
+				span_del_button.append(del_button);
+				var div_button = $('<div>');
+				div_button.append(span_del_button);
+
+				var container = $('<div class="uploaded_image_div" id="'+ id + '">');
+				container.append(div_image);
+				container.append(div_button);
+				$("#uploaded_image").append(container);
+
+				var form = $("form")[0];
+				$('<input class="image" id="' + id + '_image" type="hidden" name="image_' + id + '" value="' + path + '" />').appendTo(form);
+
+				$("form")[1].reset();
+			}
+		}, 'json');
+	});
+});
+
+
+$(function(){
+	$("#submit_btn").click(function(){
+		var img_min   =  5;// # of minimum image file(s)
+		var img_max   = 10;// # of max image file(s)
+		var input_count = $('.image').size();
+
+		if( input_count < img_min ){
+			alert('画像を ' + img_min + ' 枚以上指定してください。');
+			return;
+		}else if( input_count > img_max ){
+			alert('画像は ' + img_max + ' 枚まで指定できます。');
+			return;
+		}else{
+			$("form")[0].submit();
+		}
+	});
+});
+
+
+function del_image(id){
+
+	//	Reference:
+	//		http://blog.joyfullife.jp/archives/2007/07/18115458.php
+	//		http://nui.joyfullife.jp/sui/edit/
+
+	$("#image_message").text('削除しています...');
+	var img_id = encodeURI('to_delete=' + id);
+	
+	$.ajax({
+		url: './del_image/',
+		type: 'POST',
+		data: img_id,
+		dataType: 'json',
+		success: function(data){
+			
+			if( data.error ){
+				alert( data.error );
+			}
+			
+			if( data.deleted ){
+				var deleted_id = data.deleted;
+				$('#' + deleted_id + '_image').remove();
+				$('#' + deleted_id ).remove();
+				$("#image_message").text('');
+			}
+		},
+		error: function(){
+			alert( '削除に失敗しました。');
+			$("#image_message").text('');
+		}
+	});
+}
+
+</script>
+
+
+<style>
+/* Reference:
+		http://www.halawata.net/2011/10/css-float-display-box/
+		http://partisan.wwwxyz.jp/seed/2013/01/31/165435.php
+*/
+
+.uploaded_image {
+	/* margin-left: 154px; */
+	/* padding-left: 154px; */
+}
+
+.uploaded_image_div {
+	display: inline-block;
+	padding: 4px;
+	margin-right: -4px;
+}
+
+html*.uploaded_image_div {
+	display: inline;
+	zoom: 1;
+}
+
+</style>
+
 <div class="contents">
 	<div class="hgroup1" style="font-size: 20px; border-bottom: 1px solid #D9D9D9; margin-top: 8px; padding-bottom: 13px;">
 		<h1 style="font-size: 20px;">クーポン購入</h1>
@@ -107,23 +236,55 @@
 					<?php $this->form()->Error('coupon_person_num') ?>
 				</td>
 			</tr>
-			<tr>
-				<?php /* クーポンイメージ */ ?>
-				<td>
-					<?php $this->form()->Label('coupon_image') ?>
-				</td>
-				<td>
-					<?php if( $path = $this->form()->GetInputValue('coupon_image') ): ?>
-						<img src="<?=$path?>"/>
-					<?php endif; ?>
-					<?php $this->form()->Input('coupon_image') ?><br/>
-					<?php $this->form()->Error('coupon_image') ?>
-				</td>
-			</tr>
-		</table>
+			</table>
+			
+		<?php /*
 		<div style="text-align:center">
 			<?php $this->form()->Input( 'submit', '　入力内容の確認　') ?>
 		</div>
+		*/ ?>
+
+		<?php if($data->array_img):?>
+		<?php $array = $data->array_img;?>
+			<?php foreach( $array as $k => $v ):?>
+				<input class="image" id="<?=$k?>_image" type="hidden" name="image_<?=$k?>" value="<?=$v?>">
+			<?php endforeach;?>
+		<?php endif;?>		
+			
 		<?php $this->form()->Finish('form_coupon') ?>
+
+		<table>
+			<tr>
+				<td style="width: 154px;">
+					クーポンのイメージ
+				</td>
+				<td>
+		
+		<form name="form_coupon_image" enctype="multipart/form-data" method="post" action="./upload/" target="targetFrame" id="form_coupon_image">
+			<input type="hidden" name="MAX_FILE_SIZE" value="2000000" >
+			<input type="file" name="upload_image" id="image_select" ><br>
+			<span id="image_message"></span><!-- メッセージ表示用 -->
+		</form>
+
+				</td>
+			</tr>
+		</table>
+
+		<div id="uploaded_image" style="margin-left: 162px;">
+<?php if($array):?>
+	<?php foreach( $array as $k => $v ):?>
+<div class="uploaded_image_div" id="<?=$k?>">
+<div><img src="<?=$v?>" width="80" height="60"></div>
+<div><span class="image_del_button">
+<a href="javascript: del_image('<?=$k?>')">[x]</a>
+</span></div></div>
+	<?php endforeach;?>
+<?php endif;?>		
+		</div>
+		
+		<div style="text-align:center">
+		<input id="submit_btn" type="button" name="submit" value="登録する" class="submit" />
+		</div>
+		
 	</div>
 </div>
