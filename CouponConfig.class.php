@@ -365,15 +365,17 @@ class CouponConfig extends ConfigMgr
 			$form_config->input->$input_name->options->$i->type  = 'select';
 			$form_config->input->$input_name->options->$i->tail  = '-';
 			$form_config->input->$input_name->options->$i->validate->required  = true;
+			$form_config->input->$input_name->options->$i->options->empty->value = '';
 			
-			for( $n=0; $n<=12; $n++){
+			for( $n=1; $n<=12; $n++){
 				$form_config->input->$input_name->options->$i->options->$n->value = $n ? $n: '';
 			}
 			
 			$i = 'day';
 			$form_config->input->$input_name->options->$i->type  = 'select';
 			$form_config->input->$input_name->options->$i->validate->required  = true;
-			for( $n=0; $n<=31; $n++){
+			$form_config->input->$input_name->options->$i->options->empty->value = '';
+			for( $n=1; $n<=31; $n++){
 				$form_config->input->$input_name->options->$i->options->$n->value = $n ? $n: '';
 			}
 			
