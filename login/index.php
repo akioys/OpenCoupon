@@ -1,15 +1,15 @@
 <?php
 /* @var $this CouponApp */
 
+//  init
+$data = new Config();
+
 //  Check if logged-in.
 if( $id = $this->model('Login')->GetLoginId() ){
 	$data->message = '既にログインしています。';
 	$this->template('index.phtml',$data);
 	return;
 }
-
-//  init
-$data = new Config();
 
 //  form login
 $config = $this->config()->form_login();
