@@ -1,0 +1,26 @@
+
+	<meta charset="<?=$this->GetCharset()?>">
+	
+	<meta http-equiv="Content-Type" content="text/html; <?=$this->GetCharset()?>">
+	<meta http-equiv="Content-Style-Type" content="text/css">
+	
+	<meta name="keywords" content="<?=$this->GetKeywords()?>">
+	<meta name="description" content="<?=$this->GetDescription()?>">
+	
+	<link rel="stylesheet" type="text/css" href="/css/import.css">
+	
+	<!-- load jQuery -->
+	<script src="/js/jquery.js"></script>
+	<script src="/js/jquery-ui.js"></script>
+    
+    <!-- onlad after start user create main function of JavaScript. -->
+    <script>
+        $(function(){
+            if(typeof window.main == 'function') {
+                main();
+            }
+        })
+    </script>
+    
+	<title><?=$this->GetTitle()?></title>
+	
