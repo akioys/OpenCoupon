@@ -1,7 +1,6 @@
 <?php
 /* @var $this CouponApp */
 
-
 //	init
 $data = new Config();
 $action = $this->GetMyShopAction();
@@ -32,3 +31,4 @@ switch( $action ){
 		}
 		$this->mark("Does not define action. ($action)");
 }
+
