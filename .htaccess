@@ -17,7 +17,7 @@ Options +FollowSymLinks +ExecCGI +Indexes
 	RewriteBase /
 	
 	# If a file is image
-	RewriteRule ^(.+)(\.png|\.jpg|\.jpeg\.gif)$ $1$2 [L]
+	RewriteRule ^(.+)(\.ico|\.gif|\.png|\.jpg|\.jpeg)$ $1$2 [L]
 	
 	# if a file is JavaScript
 	RewriteRule ^(.+)(\.js)$ $1$2 [L]
