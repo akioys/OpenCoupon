@@ -1,8 +1,14 @@
 
+#	
+SetEnv		USE_MEMCACHE	0
+SetEnv		USE_MEMCACHED	0
+
+#	
 php_value	short_open_tag	On
 php_value	display_errors	On
 php_flag	log_errors		Off
 
+#	
 php_value	upload_max_filesize	2M
 
 # NewWorld2 execute option
