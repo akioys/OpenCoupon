@@ -138,7 +138,7 @@ switch( $action ){
 		$value = $this->form()->GetInputValueRawAll($form_name);
 		foreach ( $value as $key => $val ){
 			if( preg_match( '/^image_[a-zA-Z0-9]{32}$/', $key ) and $val !== null ){
-				$array[$key] = $val; 
+				$array[$key] = $val;
 			}
 		}
 		
@@ -167,7 +167,7 @@ switch( $action ){
 						//$this->StackError("Does not match extention.");
 						$data->message = '拡張子が一致しません。';
 					}
-
+					
 					//	Create directory if it doesn't exist.
 					if( file_exists($new_dir) === false ){
 						mkdir($new_dir, 0777, true);
@@ -187,6 +187,9 @@ switch( $action ){
 				//	Clear the 'selected image file' data.
 				$array_img = array();
 				unset($data->array_img);
+				
+				//	go to the edit page.
+				$this->Location("app:/myshop/coupon/edit/$coupon_id");
 			}
 		}
 		
