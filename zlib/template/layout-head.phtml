@@ -1,7 +1,7 @@
-<head>
+
 	<meta charset="<?=$this->GetCharset()?>">
 	
-	<meta http-equiv="Content-Type" content="text/html; charset=<?=$this->GetCharset()?>">
+	<meta http-equiv="Content-Type" content="text/html; <?=$this->GetCharset()?>">
 	<meta http-equiv="Content-Style-Type" content="text/css">
 	
 	<meta name="keywords" content="<?=$this->GetKeywords()?>">
@@ -9,17 +9,9 @@
 	
 	<link rel="stylesheet" type="text/css" href="/css/import.css">
 	
-	<!--
-	<script type="text/javascript" src="/jQueryUI/js/jquery.js"></script>
-	<script type="text/javascript" src="/jQueryUI/js/jquery-ui.js"></script>
-	-->
-	
 	<!-- load jQuery -->
-    <?php if($this->admin()): ?>
-        <script src="/js/jquery-1.7.1.js"></script>
-    <?php else: ?>
-        <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
-    <?php endif; ?>
+	<script src="/js/jquery.js"></script>
+	<script src="/js/jquery-ui.js"></script>
     
     <!-- onlad after start user create main function of JavaScript. -->
     <script>
@@ -31,7 +23,4 @@
     </script>
     
 	<title><?=$this->GetTitle()?></title>
-<?php
-$this->template('layout-head.phtml');
-?>
-</head>
+	
