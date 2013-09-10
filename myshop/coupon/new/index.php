@@ -50,7 +50,7 @@ switch( $action ){
 		foreach ( $value as $key => $val ){
 			$array[$key] = $val;
 			if( preg_match( '/^image_[a-zA-Z0-9]{32}$/', $key ) and $val !== null ){
-				++$n;
+				$n++;
 			}
 		}
 		
@@ -152,6 +152,7 @@ switch( $action ){
 			if( $coupon_id === false ){
 				$data->message = 'Coupon レコードの作成に失敗しました。';
 			}else{
+				/*
 				//	Get image path.
 				$path_from = $this->form()->GetInputValue('coupon_image',$form_name);
 				
@@ -168,17 +169,18 @@ switch( $action ){
 				
 				//	Create directory.
 				mkdir($this->ConvertPath("app:/shop/$shop_id/$coupon_id"));
+				*/
 				
 				//	If no error, move img files into $shop_id/$coupon_id folder with new name.
-				//$n = 1; 
-				//$new_dir = $this->ConvertPath("app:/shop/$shop_id/$coupon_id");
+				$n = 1; 
+				$new_dir = $this->ConvertPath("app:/shop/$shop_id/$coupon_id");
 				
 				foreach( $array as $k => $path_from ){
 					$path_from = $this->ConvertPath('app:/'.$path_from);
 					if( preg_match( '|\.([a-z]{3})$|i', $path_from, $match ) ){
 						$ext = $match[1];
 						$path_to = $this->ConvertPath("app:/shop/$shop_id/$coupon_id/$n.jpg");
-						++$n;
+						$n++;
 					}else{
 						//$this->StackError("Does not match extention.");
 						$data->message = '拡張子が一致しません。';
