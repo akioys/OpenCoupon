@@ -133,6 +133,7 @@ switch( $action ){
 		break;
 		
 	case 'commit':
+
 		//	retrieve 'image_[a-zA-Z0-9]{32}$' from Input
 		$array = null;
 		$value = $this->form()->GetInputValueRawAll($form_name);
@@ -152,25 +153,6 @@ switch( $action ){
 			if( $coupon_id === false ){
 				$data->message = 'Coupon レコードの作成に失敗しました。';
 			}else{
-				/*
-				//	Get image path.
-				$path_from = $this->form()->GetInputValue('coupon_image',$form_name);
-				
-				//	Get extention.
-				if( preg_match( '|\.([a-z]{3})$|i', $path_from, $match ) ){
-					$ext = $match[1];
-				}else{
-					$this->StackError("Does not match extention.");
-				}
-				
-				//	Get full path.
-				$path_from = $this->ConvertPath("app:/$path_from");
-				$path_to   = $this->ConvertPath("app:/shop/$shop_id/$coupon_id/1.$ext");
-				
-				//	Create directory.
-				mkdir($this->ConvertPath("app:/shop/$shop_id/$coupon_id"));
-				*/
-				
 				//	If no error, move img files into $shop_id/$coupon_id folder with new name.
 				$n = 1; 
 				$new_dir = $this->ConvertPath("app:/shop/$shop_id/$coupon_id");
