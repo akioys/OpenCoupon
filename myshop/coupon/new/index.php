@@ -23,7 +23,7 @@ if($_POST){
 	//$value = $this->form()->GetInputValueRawAll($form_name);//op-coreのformにする場合はこのように記述
 	$value = $_POST;
 	foreach ( $value as $key => $val ){
-		if( preg_match( '/^image_[a-zA-Z0-9]{32}$/', $key ) and $val !== null ){
+		if( preg_match( '/^image_[a-z0-9]{32}$/i', $key ) and $val !== null ){
 			$key = str_replace("image_", "", $key);
 			$array_img[$key] = $val;
 		}
@@ -49,7 +49,7 @@ switch( $action ){
 		$value = $this->form()->GetInputValueRawAll($form_name);
 		foreach ( $value as $key => $val ){
 			$array[$key] = $val;
-			if( preg_match( '/^image_[a-zA-Z0-9]{32}$/', $key ) and $val !== null ){
+			if( preg_match( '/^image_[a-z0-9]{32}$/i', $key ) and $val !== null ){
 				$n++;
 			}
 		}
@@ -138,7 +138,7 @@ switch( $action ){
 		$array = null;
 		$value = $this->form()->GetInputValueRawAll($form_name);
 		foreach ( $value as $key => $val ){
-			if( preg_match( '/^image_[a-zA-Z0-9]{32}$/', $key ) and $val !== null ){
+			if( preg_match( '/^image_[a-z0-9]{32}$/i', $key ) and $val !== null ){
 				$array[$key] = $val;
 			}
 		}
