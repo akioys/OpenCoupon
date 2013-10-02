@@ -168,6 +168,8 @@ $img_id  = pathinfo($path, PATHINFO_FILENAME);
 if($err){
 	$this->SetJson('error', $err);
 }else{
+	$code = 'ok';
+	$this->SetJson('result', $code);
 	$this->SetJson('img_path', $imgpath);
 	$this->SetJson('img_id', $img_id);
 }

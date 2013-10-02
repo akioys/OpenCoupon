@@ -107,7 +107,10 @@
 			return contents.XMLDocument || contents;
 		}
 		data = $(contents).find('body').html();
-		//console.log(data);
+		var re = data.match(/style/);
+		if( re != null ){
+			data = "\{\"nologin\":\"true\"\}";
+		}
 
 		switch (type) {
 			case 'xml':

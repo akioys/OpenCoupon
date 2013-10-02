@@ -7,6 +7,7 @@ $(function(){
 
 	$('#image_select').change(function(){
 		var img_max = 10;// # of max image file(s)
+		
 		if($('.image').size() >= img_max){
 			alert('画像は '+ img_max + ' 枚まで指定できます。');
 			$("form")[1].reset();
@@ -17,7 +18,7 @@ $(function(){
 			if( res.error ){
 				alert( res.error );
 				$("form")[1].reset();
-			}else{
+			}else if( res.result == 'ok' ){
 
 				var id        = res.img_id;
 				var path      = res.img_path; 
@@ -41,6 +42,11 @@ $(function(){
 				$('<input class="image" id="' + id + '_image" type="hidden" name="image_' + id + '" value="' + path + '" />').appendTo(form);
 
 				$("form")[1].reset();
+			}else{
+				$("form")[1].reset();
+				alert('サイトにログインしていません。\n再度ログインしてください。');
+				var top_url = "http://local.open-coupon.com/login/";
+				location.href = top_url;
 			}
 		}, 'json');
 	});
@@ -126,7 +132,6 @@ html*.uploaded_image_div {
 }
 
 </style>
-
 <div class="contents">
 	<div class="hgroup1" style="font-size: 20px; border-bottom: 1px solid #D9D9D9; margin-top: 8px; padding-bottom: 13px;">
 		<h1 style="font-size: 20px;">クーポン購入</h1>
