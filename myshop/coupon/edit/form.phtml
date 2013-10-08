@@ -106,15 +106,32 @@
 	</tr>
 	*/
 	?>
+
+	<?php //$this->d($data['array_img']);?>
+			<?php if($data['array_img']):?>
+			<?php $array = $data['array_img'];?>
+			<?php $i = 1;?>
+			<?php foreach ( $array as $k => $v ):?>
+				<?php $v = $this->ConvertURL($v);?>
+<tr><td>クーポンのイメージ <?=$i?></td><td>
+<img src="<?=$v?>" width="80" height="60"/>
+<input class="image" id="<?=$k?>_image" type="hidden" name="image_<?=$k?>" value="<?=$v?>">
+</td></tr>
+				<?php $i++;?>
+				<?php endforeach;?>
+			<?php endif;?>
+	
+	
 	<tr>
 		<td>
-			<?php $this->form()->Label('coupon_image') ?>
+			<?php //$this->form()->Label('coupon_image') ?>
 		</td>
 		<td>
-			<?php $this->form()->Input('coupon_image') ?><br/>
-			<?php $this->form()->Error('coupon_image') ?>
+			<?php //$this->form()->Input('coupon_image') ?><br/>
+			<?php //$this->form()->Error('coupon_image') ?>
 		</td>
 	</tr>
+
 	<tr>
 		<td>
 		

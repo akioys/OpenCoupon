@@ -22,6 +22,14 @@ $form_name = $config->name;
 $data['coupon_id'] = $coupon_id;
 $data['form_name'] = $form_name;
 
+
+//	Get image file name and their path
+$img_dir = $this->ConvertPath("app:/shop/$shop_id/$coupon_id");
+$array_img = glob("$img_dir/*.jpg");
+//$this->d($array_img);//for test
+$data['array_img'] = $array_img;
+
+
 //  Do action
 switch( $action ){
 	case 'index':

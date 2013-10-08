@@ -161,7 +161,8 @@ switch( $action ){
 					$path_from = $this->ConvertPath('app:/'.$path_from);
 					if( preg_match( '|\.([a-z]{3})$|i', $path_from, $match ) ){
 						$ext = $match[1];
-						$path_to = $this->ConvertPath("app:/shop/$shop_id/$coupon_id/$n.jpg");
+						$no  = str_pad($n, 2, "0", STR_PAD_LEFT);
+						$path_to = $this->ConvertPath("app:/shop/$shop_id/$coupon_id/$no.jpg");
 						$n++;
 					}else{
 						//$this->StackError("Does not match extention.");
